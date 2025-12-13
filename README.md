@@ -1,4 +1,4 @@
-# AniParser
+# [AniParser](https://anime.v0k1nt.su)
 ![AniParser logo](https://raw.githubusercontent.com/vokintru/AniParser/refs/heads/main/resources/logo.webp)\
 Веб-приложение для просмотра аниме из разных плееров
 
