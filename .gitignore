@@ -145,13 +145,13 @@ rabbitmq-data/
 activemq-data/
 
 # Sql
-
+database.db
 
 # SageMath parsed files
 *.sage.py
 
 # Environments
-
+.env
 .envrc
 .venv
 env/
