@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}
+<title>Вотчлист</title>
+{% endblock %}
+
+{% block content %}
+
+<a href="/" class="home-btn">❮</a>
+<h1 class="title">Вотчлист</h1>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="related-container"></div>
+<div class="p-3">
+    <span id="randBtn"
+          class="text-sm text-zinc-400 cursor-pointer"
+          style="border-bottom: 1px dashed;">
+      Случайное аниме
+    </span>
+</div>
+
+<script src="{{ url_for('static', filename='js/watchlist.js') }}"></script>
+{% endblock %}

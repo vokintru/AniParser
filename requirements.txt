@@ -1,0 +1,11 @@
+Flask==3.1.1
+Werkzeug==3.1.1
+Flask-SQLAlchemy
+flask-login==0.6.3
+requests
+anime_parsers_ru==1.11.5
+lxml==5.2.1
+beautifulsoup4==4.13.4
+PyJWT==2.10.1
+python-dotenv
+gunicorn

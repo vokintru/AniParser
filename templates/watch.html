@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}
+<title>Загрузка...</title>
+{% endblock %}
+
+{% block content %}
+<a href="/release/{{title_id}}" class="home-btn">❮</a>
+
+<h1 class="text-2xl font-medium mb-6">
+    Серия
+    <input type="text" id="episodeNumber"
+        class="bg-transparent border-0 text-2xl font-medium text-left text-center"
+		style="outline: none; width: auto; min-width: 1ch; text-align: center;">
+</h1>
+
+<div class="relative w-full max-w-[800px] mx-auto">
+  <div class="flex items-center justify-between w-full gap-4">
+    <button id="prevBtn"
+      class="flex-shrink-0 w-8 h-8 border border-zinc-700 bg-zinc-800 rounded shadow
+         hover:bg-zinc-700 hover:border-zinc-600">
+      <b>←</b>
+    </button>
+    <div class="flex gap-4 mx-auto max-w-[320px] w-full max-w-[320px]">
+      <button id="skipBtn" class="flex-grow h-8 min-w-[80px] max-w-[150px] border border-zinc-700 bg-zinc-800 hover:bg-zinc-700 rounded shadow flex items-center justify-center gap-1 px-3 py-1">
+          <span class="text-sm"><b>⇒</b> Скип 1:25</span>
+      </button>
+      <button id="settingsBtn"
+        class="flex-grow h-8 min-w-[80px] max-w-[150px] border border-zinc-700 bg-zinc-800 hover:bg-zinc-700 rounded shadow flex items-center justify-center gap-1 px-3 py-1">
+        <span class="text-sm"><b>⚙</b> Параметры</span>
+      </button>
+    </div>
+    <button id="nextBtn"
+        class="flex-shrink-0 w-8 h-8 border border-zinc-700 bg-zinc-800 rounded shadow
+         hover:bg-zinc-700 hover:border-zinc-600">
+        <b>→</b>
+    </button>
+  </div>
+
+  <div id="playerContainer" class="bg-black w-full aspect-video mt-4 relative">
+    <video id="videoPlayer" class="w-full h-full" controls></video>
+  </div>
+</div>
+
+<div id="settingsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+  <div class="bg-zinc-800 rounded-xl shadow-lg w-full max-w-lg p-5 relative text-white">
+    <span id="devBtn"
+          class="absolute top-3 right-4 text-sm text-zinc-400 cursor-pointer"
+          style="border-bottom: 1px dashed;">
+      dev
+    </span>
+
+    <h2 class="text-lg font-semibold mb-4">Выберите плеер и качество</h2>
+    <div id="playersList" class="space-y-3"></div>
+    <button id="reloadPlayerBtn" class="w-full mt-4 py-2 bg-zinc-700 hover:bg-zinc-600 rounded">
+      Перезагрузить плеер
+    </button>
+    <button id="closeSettings" class="w-full mt-2 py-2 bg-zinc-700 hover:bg-zinc-600 rounded">
+      Закрыть
+    </button>
+  </div>
+</div>
+
+<div id="devModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+  <div class="bg-zinc-800 rounded-xl shadow-lg w-full max-w-lg p-5 relative text-white">
+    <button onclick="closeDevModal()" class="absolute top-3 right-4 text-gray-400 hover:text-white text-xl">&times;</button>
+
+    <h2 id="modal-title" class="text-lg font-semibold mb-4 text-center">Ссылки на поток</h2>
+
+    <textarea
+      id="modal-input"
+      class="w-full bg-[#1a1a1a] text-sm text-neutral-300 px-2 py-1 rounded font-mono overflow-auto whitespace-pre"
+      style="resize: both; min-width: 0;"
+      rows="10"
+      disabled
+    ></textarea>
+
+  </div>
+</div>
+
+
+<script>
+	const release_id = "{{title_id}}";
+    const translation_id = "{{translation_id}}";
+</script>
+<script src="{{ url_for('static', filename='js/watch.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+{% endblock %}

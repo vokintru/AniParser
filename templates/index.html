@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block content %}
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get('error');
+
+    if (error) {
+        const errorDiv = document.createElement('div');
+        errorDiv.textContent = decodeURIComponent(error);
+        errorDiv.className = "fixed top-0 left-0 right-0 bg-red-600 text-white p-4 text-center z-50 shadow-md";
+        errorDiv.style.fontWeight = "bold";
+
+        const closeBtn = document.createElement('span');
+        closeBtn.textContent = "×";
+        closeBtn.style.cssText = "margin-left:10px; cursor:pointer; float:right;";
+        closeBtn.onclick = () => errorDiv.remove();
+        errorDiv.appendChild(closeBtn);
+
+        document.body.appendChild(errorDiv);
+
+        setTimeout(() => {
+            if (errorDiv.parentNode) errorDiv.remove();
+        }, 10000);
+    }
+});
+</script>
+
+
+<img class="logo mx-auto w-full max-w-[280px]" src="/resources/logo.webp" alt="Лого">
+<div class="input-block text-center px-4" style="text-align: center;">
+    <input class="cinput" type="text" id="searchInput" placeholder="Название" autocomplete="off">
+    <input class="cinput" type="text" id="shikiInput" placeholder="ID Shikimori" autocomplete="off">
+
+    <button class="cinput hover:bg-zinc-700" onclick="window.location.href='/watchlist'">Вотчлист</button>
+
+    <div class="cinput flex items-start text-white p-2 rounded-lg max-w-sm mx-auto">
+        <img id="watch-poster" src="/resources/no_poster.jpg" alt="Постер" class="w-full max-w-[60px] h-auto rounded-md object-cover mr-4 portrait">
+        <div class="space-y-1 text-sm leading-snug flex-1 min-w-0" id="watch-container">
+            <h2 id="watch-title" class="text-base font-bold truncate">
+                <span class="placeholder" style="width: 26ch;"></span>
+            </h2>
+            <p id="watch-episodes"><span class="placeholder" style="width: 26ch;"></span></p>
+        </div>
+    </div>
+
+
+    <p style="margin: 0; padding: 0; display: inline-block; font-size: 0.75rem; line-height: 1rem; --tw-text-opacity: 1; color: rgb(55 65 81 / var(--tw-text-opacity, 1));">
+        ID: {% if current_user.is_authenticated %}{{ current_user.shiki_user_id }}{% else %}Unauthenticated{% endif %} | <a href="https://t.me/AnimeParser">Telegram</a> | <a href="https://t.me/AniFeedBot">Администрация</a>
+    </p>
+</div>
+
+{% if shiki_requiered %}
+<div class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+    <div class="bg-[#121212] rounded-xl p-6 shadow-lg w-[90%] max-w-md">
+        <h2 class="text-white text-lg font-semibold mb-4 text-center">Требуется авторизация на Shikimori</h2>
+        <p class="text-gray-300 mb-6 text-center text-sm">Чтобы продолжить, авторизуйтесь в аккаунт Shikimori.</p>
+
+        <a href="{{shiki_url}}" class="flex items-center justify-center btn-gradient font-medium rounded-md px-4 py-3 w-full select-none">
+            <img src="https://shikimori.one/assets/layouts/l-top_menu-v2/glyph.svg" style="filter: brightness(0) saturate(100%);" alt="Shikimori logo" class="w-6 h-6 mr-3"/>
+            Авторизация
+        </a>
+    </div>
+</div>
+{% else %}
+<script src="{{ url_for('static', filename='js/index.js') }}"></script>
+{% endif %}
+
+{% endblock %}

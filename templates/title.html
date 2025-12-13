@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}
+<title>Загрузка...</title>
+{% endblock %}
+{% block css %}
+<style>
+    .cbody {
+        margin-top: 3vh;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<a href="/" class="home-btn">❮</a>
+<div class="max-w-5xl mx-auto">
+    <div class="flex flex-col md:flex-row gap-8 justify-center items-center">
+        <img src="/resources/no_poster.jpg" id="banner" alt="Постер" class="w-60 rounded shadow-lg portrait" />
+        <div class="flex-1 space-y-2" id="info-container">
+            <h1 class="text-2xl font-bold" id="title"><span class="placeholder" style="width: 27ch;"></span></h1>
+            <p><span class="placeholder" style="width: 14ch;"></span></p>
+            <p><span class="placeholder" style="width: 13ch;"></span></p>
+            <p><span class="placeholder" style="width: 12ch;"></span></p>
+            <p><span class="placeholder" style="width: 25ch;"></span></p>
+            <p><span class="placeholder" style="width: 16ch;"></span></p>
+            <p><span class="placeholder" style="width: 41ch;"></span></p>
+        </div>
+    </div>
+
+    <div class="mt-10 hidden" id="related-titles">
+        <h2 class="text-xl font-semibold mb-4">Связанные произведения:</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="related-container"></div>
+    </div>
+</div>
+
+<script>
+	const release_id = "{{release_id}}";
+</script>
+
+<div id="direct_path_modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 hidden">
+	<div class="bg-[#121212] rounded-xl p-6 shadow-lg w-[90%] max-w-md max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-white text-lg font-semibold">Выбери озвучку</h2>
+            <button id="close_direct_modal" class="text-gray-400 hover:text-white text-2xl leading-none">&times;</button>
+        </div>
+
+        <div class="mt-6">
+            <p id="load-translations_modal"><i>Загрузка...</i></p>
+            <p id="no-translations_modal" class="hidden"><i>Переводов нет</i></p>
+            <div class="flex flex-wrap gap-4" id="translations-container_modal"></div>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/title.js') }}"></script>
+<script src="{{ url_for('static', filename='js/title_modal.js') }}"></script>
+<script>let ep_id;</script>
+{% if chose_translation %}
+<script>
+	ep_id = "{{ep_id}}";
+    openModal();
+</script>
+{% endif %}
+
+{% endblock %}

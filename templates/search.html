@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}
+<title>Результаты поиска</title>
+{% endblock %}
+
+{% block content %}
+<a href="/" class="home-btn">❮</a>
+<h1 class="title">Поиск</h1>
+<div class="input-block text-center px-4" style="text-align: center;">
+<input class="cinput" type="text" id="searchInput" placeholder="Поиск" autocomplete="off"
+       {% if query %} value="{{query}}"{% endif %}
+       style="padding: 0.50rem 2.25rem 0.50rem 0.75rem"
+></div>
+
+<div class="flex flex-col gap-4 p-5" id="resultContainer"></div>
+
+<script src="{{ url_for('static', filename='js/search.js') }}"></script>
+
+{% endblock %}
