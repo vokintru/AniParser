@@ -184,7 +184,7 @@ function buildSettingsList() {
 
 
 async function fetchPlayerData() {
-	const url = `/api/v1/title/${release_id}/watch?transl=${translation_id}&ep=${currentEpisode}`;
+	const url = `/api/v2/title/${release_id}/watch?transl=${translation_id}&ep=${currentEpisode}`;
 	try {
 		const res = await fetch(url);
 		if (!res.ok) {
@@ -254,10 +254,10 @@ nextBtn.onclick = async () => {
 	fetchPlayerData();
 
 	try {
-		const resp = await fetch(`/api/v1/title/${release_id}/translations`);
+		const resp = await fetch(`/api/v2/title/${release_id}/eps`);
 		if (resp.ok) {
-			const info = await resp.json();
-			const total = info && typeof info.series_count === 'number' ? info.series_count : null;
+			const max_episodes = await resp.json();
+			const total = max_episodes && typeof max_episodes.eps === 'number' ? max_episodes.eps : null;
 			if (total !== null && (currentEpisode) > total) {
 				fetch("/api/v1/user/mark_watched", {
 					method: "POST",
