@@ -2,7 +2,7 @@ from anime_parsers_ru import KodikParser
 from anime_parsers_ru.errors import NoResults
 
 import lxml # ОБЯЗАТЕЛЬНО!!!
-kodik_parser = KodikParser(use_lxml=True)  # В некоторых случаях lxml может не работать, можно перейти на стандартный парсер от bs4 прописав False
+kodik_parser = KodikParser(use_lxml=True)
 
 
 def get_info(title_id):
@@ -43,4 +43,4 @@ def watch_link(title_id, seria_num, translation_id):
 
 
 if __name__ == '__main__':
-    print(get_info(34881))
+    print(watch_link(32262, 10, 609))

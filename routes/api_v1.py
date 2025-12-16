@@ -10,7 +10,7 @@ from functools import wraps
 import jwt
 import config
 
-api_bp = Blueprint('api', __name__, url_prefix='/api/v1')
+api_v1_bp = Blueprint('api_v1', __name__, url_prefix='/api/v1')
 user_requests = defaultdict(list)
 
 def auth_required(f):
@@ -43,9 +43,9 @@ def auth_required(f):
         return f(*args, **kwargs)
     return decorated
 
-@api_bp.route("/search/<query>", methods=["GET"])
+@api_v1_bp.route("/search/<query>", methods=["GET"])
 @auth_required
-def search(query):
+def search_v1(query):
     res = api.shikimori.search(query, current_user.shiki_access_token)
     if res == {'error': 'reauth'}:
         return {"error": "Token expired"}, 401
@@ -53,9 +53,9 @@ def search(query):
         return {"error": "Not Found"}, 404
     return res, 200
 
-@api_bp.route("/search/", methods=["GET"])
+@api_v1_bp.route("/search/", methods=["GET"])
 @auth_required
-def search_trending():
+def search_trending_v1():
     res = api.shikimori.search_trending(current_user.shiki_access_token)
     if res == {'error': 'reauth'}:
         return {"error": "Token expired"}, 401
@@ -63,9 +63,9 @@ def search_trending():
         return {"error": "Not Found"}, 404
     return res, 200
 
-@api_bp.route("/user/mark_watched", methods=["POST"])
+@api_v1_bp.route("/user/mark_watched", methods=["POST"])
 @auth_required
-def user_mark_watched():
+def user_mark_watched_v1():
     data = request.get_json()
     release_id = data.get("release_id")
     episode = data.get("episode")
@@ -121,9 +121,9 @@ def user_mark_watched():
         "message": f"Отмечено просмотренным"
     }), 200
 
-@api_bp.route("/user/watch_list", methods=["GET"])
+@api_v1_bp.route("/user/watch_list", methods=["GET"])
 @auth_required
-def user_watchlist():
+def user_watchlist_v1():
     user_id = current_user.id
     now = time.time()
     user_requests[user_id] = [t for t in user_requests[user_id] if now - t < 1]
@@ -144,9 +144,9 @@ def user_watchlist():
     return res, 200
 
 
-@api_bp.route("/user/watch_list/last", methods=["GET"])
+@api_v1_bp.route("/user/watch_list/last", methods=["GET"])
 @auth_required
-def user_watchlist_last():
+def user_watchlist_last_v1():
     user_id = current_user.id
     now = time.time()
     user_requests[user_id] = [t for t in user_requests[user_id] if now - t < 1]
@@ -167,9 +167,9 @@ def user_watchlist_last():
         return "None", 204
     return res, 200
 
-@api_bp.route("/user/get_rate/<int:release_id>", methods=["GET"])
+@api_v1_bp.route("/user/get_rate/<int:release_id>", methods=["GET"])
 @auth_required
-def user_get_rate(release_id):
+def user_get_rate_v1(release_id):
     user_id = current_user.id
     now = time.time()
     user_requests[user_id] = [t for t in user_requests[user_id] if now - t < 1]
@@ -191,16 +191,16 @@ def user_get_rate(release_id):
     else:
         return "None", 204
 
-@api_bp.route("/title/<int:title_id>/translations", methods=["GET"])
-def title_translations(title_id):
+@api_v1_bp.route("/title/<int:title_id>/translations", methods=["GET"])
+def title_translations_v1(title_id):
     res = api.kodik.get_info(title_id)
     if res is None:
         return "None", 204
     return res, 200
 
-@api_bp.route("/title/<int:title_id>/info", methods=["GET"])
+@api_v1_bp.route("/title/<int:title_id>/info", methods=["GET"])
 @auth_required
-def title_info(title_id):
+def title_info_v1(title_id):
     user_id = current_user.id
     now = time.time()
     user_requests[user_id] = [t for t in user_requests[user_id] if now - t < 1]
@@ -219,9 +219,9 @@ def title_info(title_id):
         return {"error": "Not Found"}, 404
     return res, 200
 
-@api_bp.route("/title/<int:title_id>/info/poster", methods=["GET"])
+@api_v1_bp.route("/title/<int:title_id>/info/poster", methods=["GET"])
 @auth_required
-def title_info_poster(title_id):
+def title_info_poster_v1(title_id):
     user_id = current_user.id
     now = time.time()
     user_requests[user_id] = [t for t in user_requests[user_id] if now - t < 1]
@@ -241,9 +241,9 @@ def title_info_poster(title_id):
     return res, 200
 
 
-@api_bp.route("/title/<int:title_id>/related", methods=["GET"])
+@api_v1_bp.route("/title/<int:title_id>/related", methods=["GET"])
 @auth_required
-def title_related(title_id):
+def title_related_v1(title_id):
     res = api.shikimori.get_title_related(title_id, current_user.shiki_access_token)
     if res == {'error': 'reauth'}:
         return {"error": "Token expired"}, 401
@@ -252,9 +252,9 @@ def title_related(title_id):
     return res, 200
 
 
-@api_bp.route("/title/<int:title_id>/watch", methods=["GET"])
+@api_v1_bp.route("/title/<int:title_id>/watch", methods=["GET"])
 @auth_required
-def title_watch(title_id):
+def title_watch_v1(title_id):
     translation = request.args.get('transl')
     episode = request.args.get('ep')
     if translation is None or episode is None:
