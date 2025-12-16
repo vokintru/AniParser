@@ -42,3 +42,9 @@ SHIKI_APP_SECRET="" // полученный Client Secret (можно найти
 SHIKI_USERAGENT="" // название вашего приложения
 ```
 3. Запуск ``python main.py``
+
+## Credits
+
+- [Telegram](https://t.me/AnimeParser)
+- [Бот для связи](https://t.me/AniFeedBot)
+- [Поддержать](https://pay.cloudtips.ru/p/ad7b4660)
