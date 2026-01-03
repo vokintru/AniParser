@@ -7,6 +7,8 @@ def get_anime_id(name):
         return None
     except requests.exceptions.ReadTimeout:
         return None
+    if res.status_code != 200:
+        return None
     if len(res.json()['data']) == 0:
         return None
     if res.json()['data'][0]['name']['english'] == name:
@@ -20,6 +22,8 @@ def get_episodes(title_id):
     except requests.exceptions.ConnectionError:
         return None
     except requests.exceptions.ReadTimeout:
+        return None
+    if res.status_code != 200:
         return None
     episodes = {}
     for episode in res.json()["episodes"]:
