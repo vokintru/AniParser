@@ -9,7 +9,7 @@
 ### В будущем:
  - Добавить Aniboom, плеер студийной банды, *возможно плеер anilib.me*
  - Watchtogether + активность в Discord
- - Приложение на телефоны ([В разработке](https://github.com/vokintru/AnimeParser))
+ - Приложение на телефоны
  - Приложение для пк (для [Anime4K](https://github.com/bloc97/Anime4K))
  - Прокси, для обхода cors браузера
  - *Будет дополняться*
