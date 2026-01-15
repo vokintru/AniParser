@@ -54,6 +54,11 @@ def title_translations_v2(title_id):
 @auth_required
 def title_eps_v2(title_id):
     res = api.kodik_v2.get_eps(title_id)
+    sh_res = api.shikimori.get_title_info(title_id, current_user.shiki_access_token)
+    if sh_res['type'] == "Фильм":
+        return {"eps": "movie"}, 200
+    if res > sh_res['total_episodes']:
+        res = sh_res['total_episodes']
     return {"eps": res}, 200
 
 @api_v2_bp.route("/title/<int:title_id>/watch", methods=["GET"])
