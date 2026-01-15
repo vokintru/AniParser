@@ -43,9 +43,13 @@ async function loadTranslationsModal() {
 		const btn = document.createElement("button");
 		btn.className = "relative flex text-sm items-center justify-center gap-1 px-3 py-2 rounded-xl bg-zinc-800 text-white font-medium shadow-md hover:bg-zinc-700 active:bg-zinc-600 transition duration-200 select-none overflow-hidden";
 		btn.innerHTML = `
-			<span>${t.name}</span>
-			<span class="text-[10px] select-none text-zinc-400">(<span style="color: ${t.eps === max_eps.eps ? 'rgba(55, 184, 102, 0.8)' : 'rgba(255, 100, 100, 0.8)'}">${t.eps}</span>)</span>
-		`;
+            <span>${t.name}</span>
+            ${
+                typeof max_eps.eps === 'number'
+                    ? `<span class="text-[10px] select-none text-zinc-400">(<span style="color: ${t.eps > max_eps.eps ? 'rgba(80, 150, 255, 0.8)' : t.eps === max_eps.eps ? 'rgba(55, 184, 102, 0.8)' : 'rgba(255, 100, 100, 0.8)'}">${t.eps}</span>)</span>`
+                    : ''
+            }
+        `;
 
 		btn.addEventListener("click", () => {
 			directModal.classList.add("hidden");
