@@ -28,7 +28,6 @@ def get_eps(title_id):
         response = requests.get(f'https://kodikapi.com/search?token={config.KODIK_TOKEN}&shikimori_id={title_id}').json()
         max_episodes = max(item['episodes_count'] for item in response['results'])
     except Exception as e:
-        print(f"E {e}")
         return None
     return max_episodes
 
