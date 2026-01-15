@@ -48,7 +48,7 @@ def callback():
             login_user(user, remember=True)
             db_sess.close()
             return redirect('/')
-    return 'Ошибка авторизации', 401
+    return redirect('/?error=Ошибка авторизации')
 
 @auth_bp.route("/login")
 def login():
