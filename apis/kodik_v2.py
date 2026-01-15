@@ -101,9 +101,11 @@ def watch_links(title_id:int, ep_num:int, translation_id:int):
     for quality, items in data['links'].items():
         url = items[0]['src']
         url = url if "mp4:hls:manifest" in url else _convert(url)
-        res[quality] = "https:" + url
+        url = url.replace("https:", "")
+        url = url[: url.rfind("/") + 1]
+        res[quality] = "https:" + url + quality + ".mp4:hls:manifest.m3u8"
     return res
 
 
 if __name__ == '__main__':
-    print(get_translations(61142))
+    print(watch_links(10110, 3, 608))

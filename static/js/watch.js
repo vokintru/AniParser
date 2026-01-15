@@ -184,6 +184,27 @@ function buildSettingsList() {
 
 
 async function fetchPlayerData() {
+
+    try {
+		const resp = await fetch(`/api/v2/title/${release_id}/eps`);
+		if (resp.ok) {
+			const max_episodes = await resp.json();
+
+            let total = null;
+
+            if (typeof max_episodes?.eps === 'number') {
+                total = max_episodes.eps;
+            } else if (max_episodes?.eps === 'movie') {
+                total = 1;
+            }
+			if (total !== null && (currentEpisode) > total) {
+				window.location.href = `/release/${release_id}`;
+			}
+		}
+	} catch (e) {
+		console.error('Не удалось получить информацию о количестве серий', e);
+	}
+
 	const url = `/api/v2/title/${release_id}/watch?transl=${translation_id}&ep=${currentEpisode}`;
 	try {
 		const res = await fetch(url);
@@ -252,42 +273,6 @@ nextBtn.onclick = async () => {
 	currentEpisode++;
 	updateHash();
 	fetchPlayerData();
-
-	try {
-		const resp = await fetch(`/api/v2/title/${release_id}/eps`);
-		if (resp.ok) {
-			const max_episodes = await resp.json();
-			const total = max_episodes && typeof max_episodes.eps === 'number' ? max_episodes.eps : null;
-			if (total !== null && (currentEpisode) > total) {
-				fetch("/api/v1/user/mark_watched", {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify({
-						release_id: release_id,
-						episode: watched_ep,
-					}),
-				})
-				.then(async res => {
-					if (res.status === 401) throw new Error("redirect");
-                    const data = await res.json();
-					if (data.status === "error" && data.message === "reauth") throw new Error("redirect");
-                    window.location.href = `/release/${release_id}`;
-				})
-				.catch(err => {
-					if (err.message === "redirect") {
-						window.location.href = '/reauth';
-						return;
-					}
-					console.error("Ошибка при отправке mark_watched:", err);
-				});
-				return;
-			}
-		}
-	} catch (e) {
-		console.error('Не удалось получить информацию о количестве серий', e);
-	}
 
 	fetch("/api/v1/user/mark_watched", {
 		method: "POST",
