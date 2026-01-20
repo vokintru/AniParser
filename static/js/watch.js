@@ -39,6 +39,37 @@ let hls = null;
 devBtn.onclick = () => {
   settingsModal.classList.add('hidden');
   devModal.classList.remove('hidden');
+
+  // Очистить предыдущие элементы
+  const existingTsDiv = document.getElementById('tsButtons');
+  if (existingTsDiv) existingTsDiv.remove();
+
+  // Добавить кнопки для скачивания каждого качества как TS
+  const modalInput = document.getElementById('modal-input');
+  if (!modalInput || !modalInput.value) return;
+
+  try {
+    const data = JSON.parse(modalInput.value);
+    const tsDiv = document.createElement('div');
+    tsDiv.id = 'tsButtons';
+    tsDiv.className = 'mt-4';
+
+    Object.entries(data).forEach(([player, qualities]) => {
+      Object.entries(qualities).forEach(([quality, url]) => {
+        if (typeof url === 'string' && url.includes('.m3u8')) {
+          const btn = document.createElement('button');
+          btn.textContent = `Скачать ${quality}p как TS`;
+          btn.className = 'mr-2 mb-1 px-3 py-1 bg-green-700 rounded hover:bg-green-600';
+          btn.onclick = () => downloadQualityAsTs(url, quality);
+          tsDiv.appendChild(btn);
+        }
+      });
+    });
+
+    devModal.appendChild(tsDiv);
+  } catch (e) {
+    console.error('Ошибка парсинга JSON:', e);
+  }
 };
 
 function getCookie(name) {
@@ -56,6 +87,74 @@ function setCookie(name, value, days = 365) {
 
 function closeDevModal() {
   devModal.classList.add('hidden');
+}
+
+async function downloadQualityAsTs(url, quality) {
+  if (!url || !url.includes('.m3u8')) {
+    alert('Неверный URL');
+    return;
+  }
+
+  try {
+    const response = await fetch(url);
+    const m3u8Text = await response.text();
+    const lines = m3u8Text.split('\n');
+
+    // Найти базовый URL
+    const baseUrl = url.replace(':hls:manifest.m3u8', ':hls:');
+    let sequence = 0;
+    let segments = [];
+    lines.forEach(line => {
+      if (line.startsWith('#EXT-X-MEDIA-SEQUENCE:')) {
+        sequence = parseInt(line.split(':')[1]);
+      } else if (line.startsWith('#EXTINF:') && segments.length === 0) {
+        // После #EXTINF идёт URL сегмента, но поскольку Kodik, генерируем
+      }
+    });
+    // Предполагаем сегменты seg-{sequence + i}-v1-a1.ts, нужно знать count
+    // Для простоты, парсим #EXTINF для count
+    let count = 0;
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].startsWith('#EXTINF:')) count++;
+    }
+    if (count === 0) {
+      alert('Не удалось определить количество сегментов');
+      return;
+    }
+
+    const tsUrls = [];
+    for (let i = 0; i < count; i++) {
+      tsUrls.push(`${baseUrl}seg-${sequence + i}-v1-a1.ts`);
+    }
+
+    // Скачать все TS параллельно
+    const promises = tsUrls.map(tsUrl => fetch(tsUrl).then(async res => {
+      if (!res.ok) throw new Error(`HTTP ${res.status} for ${tsUrl}`);
+      const contentType = res.headers.get('content-type');
+      if (!contentType || !contentType.includes('video')) {
+        const text = await res.text();
+        throw new Error(`Не видео: ${text.substring(0, 100)}`);
+      }
+      return res.arrayBuffer();
+    }));
+    const buffers = await Promise.all(promises);
+
+    // Объединить в один blob
+    const combined = new Blob(buffers, { type: 'video/MP2T' });
+
+    // Скачать
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(combined);
+    a.download = `episode_${currentEpisode}_${quality}p.ts`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(a.href);
+
+    alert(`Скачан файл episode_${currentEpisode}_${quality}p.ts`);
+  } catch (e) {
+    alert('Ошибка скачивания: ' + e.message);
+  }
 }
 
 function readEpisodeFromHash() {
