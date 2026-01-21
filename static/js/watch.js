@@ -29,12 +29,14 @@ const closeSettings = document.getElementById('closeSettings');
 const reloadPlayerBtn = document.getElementById('reloadPlayerBtn');
 const playerContainer = document.getElementById('playerContainer');
 const cookieName = 'videoVolume'
+const rateCookieName = 'videoPlaybackRate'
 
 let currentEpisode = 1;
 let playersData = {};
 let currentPlayer = null;
 let currentQuality = null;
 let hls = null;
+let errorCount = 0;
 
 devBtn.onclick = () => {
   settingsModal.classList.add('hidden');
@@ -201,7 +203,7 @@ function clearPlayer() {
   playerContainer.innerHTML = '';
 }
 
-function insertVideoPlayer(m3u8url, startTime=0) {
+function insertVideoPlayer(m3u8url, startTime=0, startRate=1) {
   clearPlayer();
   const video = document.createElement('video');
   video.id = 'videoPlayer';
@@ -216,21 +218,43 @@ function insertVideoPlayer(m3u8url, startTime=0) {
   video.addEventListener('volumechange', () => {
     setCookie(cookieName, video.volume)
   })
+
+  const savedRate = getCookie(rateCookieName)
+  if (savedRate !== undefined) {
+    video.playbackRate = parseFloat(savedRate)
+  }
+  video.addEventListener('ratechange', () => {
+    setCookie(rateCookieName, video.playbackRate)
+  })
   if (video.canPlayType('application/vnd.apple.mpegurl')) {
     video.src = m3u8url;
     video.currentTime = startTime;
+    video.playbackRate = startRate;
     video.play().catch(() => {});
   } else if (window.Hls) {
     hls = new Hls();
     hls.loadSource(m3u8url);
     hls.attachMedia(video);
     hls.on(Hls.Events.MANIFEST_PARSED, () => {
+      video.playbackRate = startRate;
       if (startTime <= 0) {
       video.play().catch(() => {});
       video.currentTime = startTime;
       } else {
       video.currentTime = startTime;
       video.pause().catch(() => {});};
+    });
+    hls.on(Hls.Events.ERROR, (event, data) => {
+      if (data.details === Hls.ErrorDetails.FRAG_LOAD_ERROR || data.details === Hls.ErrorDetails.MEDIA_ERROR) {
+        errorCount++;
+        if (errorCount >= 3) {
+          reloadPlayerBtn.click();
+          errorCount = 0;
+        }
+      }
+    });
+    hls.on(Hls.Events.FRAG_LOADED, () => {
+      errorCount = 0;
     });
   } else {
     alert('Ваш браузер не поддерживает воспроизведение HLS потоков');
@@ -248,7 +272,7 @@ function insertIframe(src) {
   playerContainer.appendChild(iframe);
 }
 
-function setPlayerQuality(player, quality, startTime=0) {
+function setPlayerQuality(player, quality, startTime=0, startRate=1) {
   currentPlayer = player;
   currentQuality = quality;
   let url = playersData[player][quality];
@@ -261,7 +285,7 @@ function setPlayerQuality(player, quality, startTime=0) {
     const iframeUrl = url.slice('!iframe '.length).trim();
     insertIframe(iframeUrl);
   } else {
-    insertVideoPlayer(url, startTime);
+    insertVideoPlayer(url, startTime, startRate);
   }
 }
 
@@ -288,10 +312,12 @@ function buildSettingsList() {
         btn.onclick = () => {
           const video = document.getElementById('videoPlayer');
           let currentTime = 0;
+          let currentRate = 1;
           if (video && video.tagName.toLowerCase() === 'video') {
             currentTime = video.currentTime || 0;
+            currentRate = video.playbackRate || 1;
           }
-          setPlayerQuality(playerName, quality, currentTime);
+          setPlayerQuality(playerName, quality, currentTime, currentRate);
           buildSettingsList();
         };
         playerDiv.appendChild(btn);
@@ -429,10 +455,12 @@ reloadPlayerBtn.onclick = () => {
   if (!currentPlayer || !currentQuality) return;
   const video = document.getElementById('videoPlayer');
   let currentTime = 0;
+  let currentRate = 1;
   if (video && video.tagName.toLowerCase() === 'video') {
     currentTime = video.currentTime || 0;
+    currentRate = video.playbackRate || 1;
   }
-  setPlayerQuality(currentPlayer, currentQuality, currentTime);
+  setPlayerQuality(currentPlayer, currentQuality, currentTime, currentRate);
 };
 
 episodeNumberElem.addEventListener('keypress', (e) => {
