@@ -29,16 +29,50 @@ const closeSettings = document.getElementById('closeSettings');
 const reloadPlayerBtn = document.getElementById('reloadPlayerBtn');
 const playerContainer = document.getElementById('playerContainer');
 const cookieName = 'videoVolume'
+const rateCookieName = 'videoPlaybackRate'
 
 let currentEpisode = 1;
 let playersData = {};
 let currentPlayer = null;
 let currentQuality = null;
 let hls = null;
+let errorCount = 0;
 
 devBtn.onclick = () => {
   settingsModal.classList.add('hidden');
   devModal.classList.remove('hidden');
+
+  // Очистить предыдущие элементы
+  const existingTsDiv = document.getElementById('tsButtons');
+  if (existingTsDiv) existingTsDiv.remove();
+
+  // Добавить кнопки для скачивания каждого качества как TS
+  const modalInput = document.getElementById('modal-input');
+  if (!modalInput || !modalInput.value) return;
+
+  try {
+    const data = JSON.parse(modalInput.value);
+    const tsDiv = document.createElement('div');
+    tsDiv.id = 'tsButtons';
+    tsDiv.className = 'mt-4';
+
+    Object.entries(data).forEach(([player, qualities]) => {
+      Object.entries(qualities).forEach(([quality, url]) => {
+        if (typeof url === 'string' && url.includes('.m3u8')) {
+          const btn = document.createElement('button');
+          btn.textContent = `Скачать ${player}/${quality}p`;
+          btn.className = 'mr-2 mb-1 px-3 py-1 bg-zinc-700 rounded hover:bg-zinc-600';
+          btn.onclick = () => downloadQualityAsTs(url, quality);
+          tsDiv.appendChild(btn);
+        }
+      });
+    });
+
+    const modalContainer = document.getElementById('modal-input').parentNode;
+    modalContainer.appendChild(tsDiv);
+  } catch (e) {
+    console.error('Ошибка парсинга JSON:', e);
+  }
 };
 
 function getCookie(name) {
@@ -56,6 +90,93 @@ function setCookie(name, value, days = 365) {
 
 function closeDevModal() {
   devModal.classList.add('hidden');
+}
+
+async function downloadQualityAsTs(url, quality) {
+  if (!url || !url.includes('.m3u8')) {
+    alert('Неверный URL');
+    return;
+  }
+
+  try {
+    const response = await fetch(url);
+    const m3u8Text = await response.text();
+    const lines = m3u8Text.split('\n');
+
+    // Найти базовый URL
+    const baseUrl = url.replace(':hls:manifest.m3u8', ':hls:');
+    let sequence = 0;
+    let segments = [];
+    lines.forEach(line => {
+      if (line.startsWith('#EXT-X-MEDIA-SEQUENCE:')) {
+        sequence = parseInt(line.split(':')[1]);
+      } else if (line.startsWith('#EXTINF:') && segments.length === 0) {
+        // После #EXTINF идёт URL сегмента, но поскольку Kodik, генерируем
+      }
+    });
+    // Предполагаем сегменты seg-{sequence + i}-v1-a1.ts, нужно знать count
+    // Для простоты, парсим #EXTINF для count
+    let count = 0;
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].startsWith('#EXTINF:')) count++;
+    }
+    if (count === 0) {
+      alert('Не удалось определить количество сегментов');
+      return;
+    }
+
+    const tsUrls = [];
+    for (let i = 0; i < count; i++) {
+      tsUrls.push(`${baseUrl}seg-${sequence + i}-v1-a1.ts`);
+    }
+
+    // Добавить прогресс-бар
+    const progressContainer = document.createElement('div');
+    progressContainer.id = 'downloadProgress';
+    progressContainer.className = 'mt-4';
+    const progressBar = document.createElement('div');
+    progressBar.className = 'w-full bg-gray-600 rounded h-2 relative';
+    const progressFill = document.createElement('div');
+    progressFill.className = 'bg-white rounded h-full transition-all duration-300';
+    progressFill.style.width = '0%';
+    progressBar.appendChild(progressFill);
+    progressContainer.appendChild(progressBar);
+    const modalContainer = document.getElementById('modal-input').parentNode;
+    modalContainer.appendChild(progressContainer);
+
+    // Скачать все TS параллельно
+    let downloaded = 0;
+    const promises = tsUrls.map(tsUrl => fetch(tsUrl).then(async res => {
+      if (!res.ok) throw new Error(`HTTP ${res.status} for ${tsUrl}`);
+      const contentType = res.headers.get('content-type');
+      if (!contentType || !contentType.includes('video')) {
+        const text = await res.text();
+        throw new Error(`Не видео: ${text.substring(0, 100)}`);
+      }
+      const buffer = await res.arrayBuffer();
+      downloaded++;
+      progressFill.style.width = `${(downloaded / count) * 100}%`;
+      return buffer;
+    }));
+    const buffers = await Promise.all(promises);
+
+    // Удалить прогресс-бар
+    progressContainer.remove();
+
+    // Объединить в один blob
+    const combined = new Blob(buffers, { type: 'video/MP2T' });
+
+    // Скачать
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(combined);
+    a.download = `${document.title} ${currentEpisode} серия.mp4`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(a.href);
+  } catch (e) {
+    alert('Ошибка скачивания: ' + e.message);
+  }
 }
 
 function readEpisodeFromHash() {
@@ -82,7 +203,7 @@ function clearPlayer() {
   playerContainer.innerHTML = '';
 }
 
-function insertVideoPlayer(m3u8url, startTime=0) {
+function insertVideoPlayer(m3u8url, startTime=0, startRate=1) {
   clearPlayer();
   const video = document.createElement('video');
   video.id = 'videoPlayer';
@@ -97,21 +218,43 @@ function insertVideoPlayer(m3u8url, startTime=0) {
   video.addEventListener('volumechange', () => {
     setCookie(cookieName, video.volume)
   })
+
+  const savedRate = getCookie(rateCookieName)
+  if (savedRate !== undefined) {
+    video.playbackRate = parseFloat(savedRate)
+  }
+  video.addEventListener('ratechange', () => {
+    setCookie(rateCookieName, video.playbackRate)
+  })
   if (video.canPlayType('application/vnd.apple.mpegurl')) {
     video.src = m3u8url;
     video.currentTime = startTime;
+    video.playbackRate = startRate;
     video.play().catch(() => {});
   } else if (window.Hls) {
     hls = new Hls();
     hls.loadSource(m3u8url);
     hls.attachMedia(video);
     hls.on(Hls.Events.MANIFEST_PARSED, () => {
+      video.playbackRate = startRate;
       if (startTime <= 0) {
       video.play().catch(() => {});
       video.currentTime = startTime;
       } else {
       video.currentTime = startTime;
       video.pause().catch(() => {});};
+    });
+    hls.on(Hls.Events.ERROR, (event, data) => {
+      if (data.details === Hls.ErrorDetails.FRAG_LOAD_ERROR || data.details === Hls.ErrorDetails.MEDIA_ERROR) {
+        errorCount++;
+        if (errorCount >= 3) {
+          reloadPlayerBtn.click();
+          errorCount = 0;
+        }
+      }
+    });
+    hls.on(Hls.Events.FRAG_LOADED, () => {
+      errorCount = 0;
     });
   } else {
     alert('Ваш браузер не поддерживает воспроизведение HLS потоков');
@@ -129,7 +272,7 @@ function insertIframe(src) {
   playerContainer.appendChild(iframe);
 }
 
-function setPlayerQuality(player, quality, startTime=0) {
+function setPlayerQuality(player, quality, startTime=0, startRate=1) {
   currentPlayer = player;
   currentQuality = quality;
   let url = playersData[player][quality];
@@ -142,7 +285,7 @@ function setPlayerQuality(player, quality, startTime=0) {
     const iframeUrl = url.slice('!iframe '.length).trim();
     insertIframe(iframeUrl);
   } else {
-    insertVideoPlayer(url, startTime);
+    insertVideoPlayer(url, startTime, startRate);
   }
 }
 
@@ -169,10 +312,12 @@ function buildSettingsList() {
         btn.onclick = () => {
           const video = document.getElementById('videoPlayer');
           let currentTime = 0;
+          let currentRate = 1;
           if (video && video.tagName.toLowerCase() === 'video') {
             currentTime = video.currentTime || 0;
+            currentRate = video.playbackRate || 1;
           }
-          setPlayerQuality(playerName, quality, currentTime);
+          setPlayerQuality(playerName, quality, currentTime, currentRate);
           buildSettingsList();
         };
         playerDiv.appendChild(btn);
@@ -346,10 +491,12 @@ reloadPlayerBtn.onclick = () => {
   if (!currentPlayer || !currentQuality) return;
   const video = document.getElementById('videoPlayer');
   let currentTime = 0;
+  let currentRate = 1;
   if (video && video.tagName.toLowerCase() === 'video') {
     currentTime = video.currentTime || 0;
+    currentRate = video.playbackRate || 1;
   }
-  setPlayerQuality(currentPlayer, currentQuality, currentTime);
+  setPlayerQuality(currentPlayer, currentQuality, currentTime, currentRate);
 };
 
 episodeNumberElem.addEventListener('keypress', (e) => {
