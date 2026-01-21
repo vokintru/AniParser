@@ -145,13 +145,11 @@ async function downloadQualityAsTs(url, quality) {
     // Скачать
     const a = document.createElement('a');
     a.href = URL.createObjectURL(combined);
-    a.download = `episode_${currentEpisode}_${quality}p.ts`;
+    a.download = `episode_${currentEpisode}_${quality}p.mp4`;
     document.body.appendChild(a);
     a.click();
     a.remove();
     URL.revokeObjectURL(a.href);
-
-    alert(`Скачан файл episode_${currentEpisode}_${quality}p.ts`);
   } catch (e) {
     alert('Ошибка скачивания: ' + e.message);
   }
