@@ -58,15 +58,16 @@ devBtn.onclick = () => {
       Object.entries(qualities).forEach(([quality, url]) => {
         if (typeof url === 'string' && url.includes('.m3u8')) {
           const btn = document.createElement('button');
-          btn.textContent = `Скачать ${quality}p как TS`;
-          btn.className = 'mr-2 mb-1 px-3 py-1 bg-green-700 rounded hover:bg-green-600';
+          btn.textContent = `Скачать ${player}/${quality}p`;
+          btn.className = 'mr-2 mb-1 px-3 py-1 bg-zinc-700 rounded hover:bg-zinc-600';
           btn.onclick = () => downloadQualityAsTs(url, quality);
           tsDiv.appendChild(btn);
         }
       });
     });
 
-    devModal.appendChild(tsDiv);
+    const modalContainer = document.getElementById('modal-input').parentNode;
+    modalContainer.appendChild(tsDiv);
   } catch (e) {
     console.error('Ошибка парсинга JSON:', e);
   }
@@ -127,7 +128,22 @@ async function downloadQualityAsTs(url, quality) {
       tsUrls.push(`${baseUrl}seg-${sequence + i}-v1-a1.ts`);
     }
 
+    // Добавить прогресс-бар
+    const progressContainer = document.createElement('div');
+    progressContainer.id = 'downloadProgress';
+    progressContainer.className = 'mt-4';
+    const progressBar = document.createElement('div');
+    progressBar.className = 'w-full bg-gray-600 rounded h-2 relative';
+    const progressFill = document.createElement('div');
+    progressFill.className = 'bg-white rounded h-full transition-all duration-300';
+    progressFill.style.width = '0%';
+    progressBar.appendChild(progressFill);
+    progressContainer.appendChild(progressBar);
+    const modalContainer = document.getElementById('modal-input').parentNode;
+    modalContainer.appendChild(progressContainer);
+
     // Скачать все TS параллельно
+    let downloaded = 0;
     const promises = tsUrls.map(tsUrl => fetch(tsUrl).then(async res => {
       if (!res.ok) throw new Error(`HTTP ${res.status} for ${tsUrl}`);
       const contentType = res.headers.get('content-type');
@@ -135,9 +151,15 @@ async function downloadQualityAsTs(url, quality) {
         const text = await res.text();
         throw new Error(`Не видео: ${text.substring(0, 100)}`);
       }
-      return res.arrayBuffer();
+      const buffer = await res.arrayBuffer();
+      downloaded++;
+      progressFill.style.width = `${(downloaded / count) * 100}%`;
+      return buffer;
     }));
     const buffers = await Promise.all(promises);
+
+    // Удалить прогресс-бар
+    progressContainer.remove();
 
     // Объединить в один blob
     const combined = new Blob(buffers, { type: 'video/MP2T' });
@@ -145,7 +167,7 @@ async function downloadQualityAsTs(url, quality) {
     // Скачать
     const a = document.createElement('a');
     a.href = URL.createObjectURL(combined);
-    a.download = `episode_${currentEpisode}_${quality}p.mp4`;
+    a.download = `${document.title} ${currentEpisode} серия.mp4`;
     document.body.appendChild(a);
     a.click();
     a.remove();
