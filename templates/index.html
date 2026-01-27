@@ -49,6 +49,9 @@ document.addEventListener("DOMContentLoaded", () => {
     <p style="margin: 0; padding: 0; display: inline-block; font-size: 0.75rem; line-height: 1rem; --tw-text-opacity: 1; color: rgb(55 65 81 / var(--tw-text-opacity, 1));">
         ID: {% if current_user.is_authenticated %}{{ current_user.shiki_user_id }}{% else %}Unauthenticated{% endif %} | <a href="https://t.me/AnimeParser">Telegram</a> | <a href="https://t.me/AniFeedBot">Администрация</a>
     </p>
+    <div class="mt-4 p-3 rounded-lg bg-red-900/50 border border-red-700 text-red-300 text-center text-sm">
+        <p>Банера могут не загружаться изза блокировки РКН</p>
+    </div>
 </div>
 
 {% if shiki_requiered %}
