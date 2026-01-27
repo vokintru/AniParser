@@ -1,8 +1,9 @@
 from anime_parsers_ru import KodikParser
 from anime_parsers_ru.errors import NoResults
+import config
 
 import lxml # ОБЯЗАТЕЛЬНО!!!
-kodik_parser = KodikParser(use_lxml=True)
+kodik_parser = KodikParser(use_lxml=True, token=config.KODIK_TOKEN)
 
 
 def get_info(title_id):
