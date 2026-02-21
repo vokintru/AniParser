@@ -144,21 +144,46 @@ async function downloadQualityAsTs(url, quality) {
     const modalContainer = document.getElementById('modal-input').parentNode;
     modalContainer.appendChild(progressContainer);
 
-    // Скачать все TS параллельно
-    let downloaded = 0;
-    const promises = tsUrls.map(tsUrl => fetch(tsUrl).then(async res => {
-      if (!res.ok) throw new Error(`HTTP ${res.status} for ${tsUrl}`);
-      const contentType = res.headers.get('content-type');
-      if (!contentType || !contentType.includes('video')) {
-        const text = await res.text();
-        throw new Error(`Не видео: ${text.substring(0, 100)}`);
-      }
-      const buffer = await res.arrayBuffer();
-      downloaded++;
-      progressFill.style.width = `${(downloaded / count) * 100}%`;
-      return buffer;
-    }));
-    const buffers = await Promise.all(promises);
+    // Скачать TS батчами (до 1000 сегментов за раз).
+    // Сервер может не отдать один сегмент, поэтому не валим всю загрузку.
+    const MAX_SEGMENTS_PER_BATCH = 1000;
+    const buffers = [];
+    const failedSegments = [];
+    let processed = 0;
+
+    for (let batchStart = 0; batchStart < tsUrls.length; batchStart += MAX_SEGMENTS_PER_BATCH) {
+      const batch = tsUrls.slice(batchStart, batchStart + MAX_SEGMENTS_PER_BATCH);
+      const results = await Promise.allSettled(batch.map(async tsUrl => {
+        const res = await fetch(tsUrl);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const contentType = res.headers.get('content-type');
+        if (!contentType || !contentType.includes('video')) {
+          const text = await res.text();
+          throw new Error(`Не видео: ${text.substring(0, 100)}`);
+        }
+
+        return res.arrayBuffer();
+      }));
+
+      results.forEach((result, index) => {
+        if (result.status === 'fulfilled') {
+          buffers.push(result.value);
+        } else {
+          failedSegments.push({
+            url: batch[index],
+            error: result.reason?.message || String(result.reason)
+          });
+        }
+
+        processed++;
+        progressFill.style.width = `${(processed / count) * 100}%`;
+      });
+    }
+
+    if (buffers.length === 0) {
+      throw new Error('Не удалось скачать ни одного сегмента');
+    }
 
     // Удалить прогресс-бар
     progressContainer.remove();
@@ -174,6 +199,11 @@ async function downloadQualityAsTs(url, quality) {
     a.click();
     a.remove();
     URL.revokeObjectURL(a.href);
+
+    if (failedSegments.length > 0) {
+      alert(`Скачивание завершено с пропущенными сегментами: ${failedSegments.length}`);
+      console.warn('Пропущенные сегменты:', failedSegments);
+    }
   } catch (e) {
     alert('Ошибка скачивания: ' + e.message);
   }
