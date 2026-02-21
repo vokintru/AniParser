@@ -80,7 +80,7 @@ function handleSearch(query) {
 
                 placeholder.innerHTML = `
                     <img
-                        src="https://shikimori.one${item.image.original}"
+                        src="https://${SHIKI_DOMAIN}${item.image.original}"
                         alt="Постер"
                         class="w-full max-w-[80px] h-auto rounded-md object-cover mr-4 portrait"
                     />

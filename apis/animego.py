@@ -2,6 +2,7 @@ import pprint
 from anime_parsers_ru import AniboomParser
 import config
 from apis import shikimori
+from config import SHIKI_DOMAIN
 
 parser = AniboomParser()
 
@@ -9,7 +10,7 @@ def watch_link(animego_id, episode_num, translation_id):
     return parser.get_mpd_playlist(animego_id, episode_num, translation_id)
 
 def find_match(anime_id, token):
-    title = shikimori.request("GET", f"https://shiki.one/api/animes/{anime_id}",
+    title = shikimori.request("GET", f"https://{SHIKI_DOMAIN}/api/animes/{anime_id}",
                    headers={
                        'User-Agent': config.SHIKI_USERAGENT,
                        'Authorization': f'Bearer {token}'

@@ -51,6 +51,10 @@ document.addEventListener("DOMContentLoaded", () => {
     </p>
 </div>
 
+<script>
+	const SHIKI_DOMAIN = "{{SHIKI_DOMAIN}}";
+</script>
+
 {% if shiki_requiered %}
 <div class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
     <div class="bg-[#121212] rounded-xl p-6 shadow-lg w-[90%] max-w-md">
@@ -58,7 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <p class="text-gray-300 mb-6 text-center text-sm">Чтобы продолжить, авторизуйтесь в аккаунт Shikimori.</p>
 
         <a href="{{shiki_url}}" class="flex items-center justify-center btn-gradient font-medium rounded-md px-4 py-3 w-full select-none">
-            <img src="https://shikimori.one/assets/layouts/l-top_menu-v2/glyph.svg" style="filter: brightness(0) saturate(100%);" alt="Shikimori logo" class="w-6 h-6 mr-3"/>
+            <img src="https://{{SHIKI_DOMAIN}}/assets/layouts/l-top_menu-v2/glyph.svg" style="filter: brightness(0) saturate(100%);" alt="Shikimori logo" class="w-6 h-6 mr-3"/>
             Авторизация
         </a>
     </div>

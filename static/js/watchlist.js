@@ -33,7 +33,7 @@ async function loadWatchlist() {
 			card.className = 'cinput flex items-start text-white p-2 rounded-lg max-w-sm mx-auto';
 
 			const poster = item.poster
-				? `https://shikimori.one${item.poster}`
+				? `https://${SHIKI_DOMAIN}${item.poster}`
 				: '/resources/no_poster.jpg';
 
 			card.innerHTML = `

@@ -47,7 +47,7 @@ async function updateWatchList() {
     }
 
     const poster = document.getElementById('watch-poster');
-    if (poster) poster.src = data.poster ? `https://shikimori.one${data.poster}` : '/resources/no_poster.jpg';
+    if (poster) poster.src = data.poster ? `https://${SHIKI_DOMAIN}${data.poster}` : '/resources/no_poster.jpg';
 
     const nameSpan = document.getElementById('watch-title');
     if (nameSpan) nameSpan.innerHTML = `${data.name}` || 'None';

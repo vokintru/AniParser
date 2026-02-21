@@ -1,6 +1,7 @@
 from flask import Blueprint, request, render_template, redirect
 from flask_login import login_required, current_user
 from apis import shikimori
+from config import SHIKI_DOMAIN
 import config
 import urllib
 
@@ -11,12 +12,12 @@ main_bp = Blueprint('main', __name__)
 @login_required
 def home():
     error = request.args.get('error', default=None)
-    return render_template("index.html", error=error)
+    return render_template("index.html", error=error, SHIKI_DOMAIN=SHIKI_DOMAIN)
 
 @main_bp.route("/watchlist")
 @login_required
 def watchlist():
-    return render_template("watchlist.html")
+    return render_template("watchlist.html", SHIKI_DOMAIN=SHIKI_DOMAIN)
 
 @main_bp.route("/watchlist/rand")
 @login_required
@@ -31,31 +32,31 @@ def watchlist_rand():
 @login_required
 def search():
     query = request.args.get('q', default=None)
-    return render_template("search.html", query=query)
+    return render_template("search.html", query=query, SHIKI_DOMAIN=SHIKI_DOMAIN)
 
 @main_bp.route("/search/<string:query>")
 @login_required
 def search_with_query(query):
-    return render_template("search.html", query=query)
+    return render_template("search.html", query=query, SHIKI_DOMAIN=SHIKI_DOMAIN)
 
 @main_bp.route("/release/<int:release_id>")
 @main_bp.route("/release/<int:release_id>/")
 @login_required
 def release(release_id):
-    return render_template("title.html", release_id=release_id)
+    return render_template("title.html", release_id=release_id, SHIKI_DOMAIN=SHIKI_DOMAIN)
 
 @main_bp.route("/watch/<int:title_id>/<int:translation_id>")
 @main_bp.route("/watch/<int:title_id>/<int:translation_id>/")
 @login_required
 def watch(title_id, translation_id):
-    return render_template("watch.html", title_id=title_id, translation_id=translation_id)
+    return render_template("watch.html", title_id=title_id, translation_id=translation_id, SHIKI_DOMAIN=SHIKI_DOMAIN)
 
 @main_bp.route("/watch/<int:title_id>")
 @main_bp.route("/watch/<int:title_id>/")
 @login_required
 def watch_without(title_id):
     ep = request.args.get('ep', default=1)
-    return render_template("title.html", release_id=title_id, chose_translation=True, ep_id=ep)
+    return render_template("title.html", release_id=title_id, chose_translation=True, ep_id=ep, SHIKI_DOMAIN=SHIKI_DOMAIN)
 
 #old ways
 

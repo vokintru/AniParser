@@ -113,14 +113,14 @@ async function loadTitleInfo() {
 
 	if (data.status === "Анонс") {
 		metaContainer.innerHTML = `
-		    <h1 class="text-2xl font-bold"><a href="https://shikimori.one/animes/${release_id}" target="_blank" rel="noopener noreferrer" class="hover:underline">${data.name}</a></h1>
+		    <h1 class="text-2xl font-bold"><a href="https://${SHIKI_DOMAIN}/animes/${release_id}" target="_blank" rel="noopener noreferrer" class="hover:underline">${data.name}</a></h1>
 			<p><span class="font-semibold">Статус:</span> ${data.status}</p>
 		`;
 		return;
 	}
 
 	metaContainer.innerHTML = `
-		<h1 class="text-2xl font-bold"><a href="https://shikimori.one/animes/${release_id}" target="_blank" rel="noopener noreferrer" class="hover:underline">${data.name}</a></h1>
+		<h1 class="text-2xl font-bold"><a href="https://${SHIKI_DOMAIN}/animes/${release_id}" target="_blank" rel="noopener noreferrer" class="hover:underline">${data.name}</a></h1>
 		<p><span class="font-semibold">Тип:</span> ${data.type}</p>
 		<p><span class="font-semibold">Статус:</span> ${data.status}</p>
 		<p><span class="font-semibold">Оценка:</span> ${data.score}</p>
@@ -245,14 +245,14 @@ async function loadRelated() {
         if (item.anime) {
             url = `/release/${content.id}`;
         } else if (item.manga) {
-            url = 'https://shikimori.one' + `${content.url}`;
+            url = 'https://${SHIKI_DOMAIN}' + `${content.url}`;
         }
 
         const block = document.createElement("div");
         block.className = "bg-zinc-900 p-3 rounded shadow flex items-start gap-4 w-full max-w-md cursor-pointer";
 
         block.innerHTML = `
-            <img src="${content.image ? 'https://shikimori.one' + content.image.preview : '/resources/no_poster.jpg'}"
+            <img src="${content.image ? 'https://' + SHIKI_DOMAIN + content.image.preview : '/resources/no_poster.jpg'}"
                 alt="Постер" class="w-20 h-auto rounded object-cover" />
             <div class="flex-1">
                 <h3 class="font-semibold text-sm leading-snug">

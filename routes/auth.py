@@ -7,6 +7,7 @@ from data import db_session
 from data.user import User
 from datetime import datetime, timedelta
 from flask_login import login_user
+from config import SHIKI_DOMAIN
 import jwt
 
 auth_bp = Blueprint('auth_bp', __name__)
@@ -15,7 +16,7 @@ app_sessions = {}
 @auth_bp.route("/callback")
 def callback():
     code = request.args.get('code')
-    r = requests.post('https://shikimori.one/oauth/token',
+    r = requests.post(f'https://{SHIKI_DOMAIN}/oauth/token',
                       headers={'User-Agent': config.SHIKI_USERAGENT},
                       params={'grant_type': 'authorization_code',
                               'client_id': config.SHIKI_APP_ID,
@@ -29,7 +30,7 @@ def callback():
         else:
             resp = r.json()
             db_sess = db_session.create_session()
-            r = requests.get('https://shikimori.one/api/users/whoami',
+            r = requests.get(f'https://{SHIKI_DOMAIN}/api/users/whoami',
                              headers={'User-Agent': config.SHIKI_USERAGENT,
                                       'Authorization': f'Bearer {resp["access_token"]}'})
             user = db_sess.query(User).filter(User.shiki_user_id == r.json()['id']).first()
@@ -52,7 +53,7 @@ def callback():
 
 @auth_bp.route("/login")
 def login():
-    resp = make_response(render_template("index.html", shiki_requiered=True, shiki_url=config.SHIKI_AUTH_LINK))
+    resp = make_response(render_template("index.html", shiki_requiered=True, shiki_url=config.SHIKI_AUTH_LINK, SHIKI_DOMAIN=SHIKI_DOMAIN))
     return resp
 
 @auth_bp.route("/reauth")
@@ -67,7 +68,7 @@ def app_login():
 @login_required
 def app_auth():
     code = request.args.get('code')
-    r = requests.post('https://shikimori.one/oauth/token',
+    r = requests.post(f'https://{SHIKI_DOMAIN}/oauth/token',
                       headers={'User-Agent': config.SHIKI_USERAGENT},
                       params={'grant_type': 'authorization_code',
                               'client_id': config.SHIKI_APP_ID,
@@ -81,7 +82,7 @@ def app_auth():
         else:
             resp = r.json()
             db_sess = db_session.create_session()
-            r = requests.get('https://shikimori.one/api/users/whoami',
+            r = requests.get(f'https://{SHIKI_DOMAIN}/api/users/whoami',
                              headers={'User-Agent': config.SHIKI_USERAGENT,
                                       'Authorization': f'Bearer {resp["access_token"]}'})
             user = db_sess.query(User).filter(User.shiki_user_id == r.json()['id']).first()

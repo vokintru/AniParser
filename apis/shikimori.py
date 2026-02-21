@@ -6,6 +6,7 @@ from data import db_session
 from data.user import User
 from bs4 import BeautifulSoup
 from datetime import datetime
+from config import SHIKI_DOMAIN
 
 def request(protocol, url, headers: dict = None, data: dict = None, json = None):
     if protocol == "GET":
@@ -46,7 +47,7 @@ def request(protocol, url, headers: dict = None, data: dict = None, json = None)
 
 def refresh_token(token):
     try:
-        resp = requests.post('https://shiki.one/oauth/token',
+        resp = requests.post(f'https://{SHIKI_DOMAIN}/oauth/token',
                              headers={
                                  'User-Agent': config.SHIKI_USERAGENT
                              },
@@ -75,7 +76,7 @@ def refresh_token(token):
 
 
 def get_title_poster_highres(title_id, token):
-    resp = request("GET", f"https://shiki.one/animes/{title_id}",
+    resp = request("GET", f"https://{SHIKI_DOMAIN}/animes/{title_id}",
                    headers={
                        'User-Agent': config.SHIKI_USERAGENT,
                        'Authorization': f'Bearer {token}'
@@ -91,7 +92,7 @@ def get_title_poster_highres(title_id, token):
 
 
 def get_title_info(title_id, token):
-    resp = request("GET", f"https://shiki.one/api/animes/{title_id}",
+    resp = request("GET", f"https://{SHIKI_DOMAIN}/api/animes/{title_id}",
                    headers={
                        'User-Agent': config.SHIKI_USERAGENT,
                        'Authorization': f'Bearer {token}'
@@ -131,7 +132,7 @@ def get_title_info(title_id, token):
     return {
         'name': resp['russian'],
         'original_name': resp['name'],
-        'poster': 'https://shiki.one' + resp['image']['original'],
+        'poster': 'https://{SHIKI_DOMAIN}' + resp['image']['original'],
         'type': kind_map.get(resp['kind'], resp['kind']),
         'score': resp['score'],
         'status': status_map.get(resp['status'], resp['status']),
@@ -148,7 +149,7 @@ def get_title_info(title_id, token):
 
 
 def get_title_related(title_id, token):
-    resp = request("GET", f"https://shiki.one/api/animes/{title_id}/related",
+    resp = request("GET", f"https://{SHIKI_DOMAIN}/api/animes/{title_id}/related",
                    headers={
                        'User-Agent': config.SHIKI_USERAGENT,
                        'Authorization': f'Bearer {token}'
@@ -170,7 +171,7 @@ def get_title_related(title_id, token):
 
 def random_watchlist(user_id, token):
     resp = request("GET",
-                         f"https://shiki.one/api/users/{user_id}/anime_rates?limit=5000&status=planned",
+                         f"https://{SHIKI_DOMAIN}/api/users/{user_id}/anime_rates?limit=5000&status=planned",
                          headers={
                              'User-Agent': config.SHIKI_USERAGENT,
                              'Authorization': f'Bearer {token}'
@@ -188,7 +189,7 @@ def random_watchlist(user_id, token):
 
 
 def get_watchlist(user_id, token):
-    resp_rates = request("GET", f"https://shiki.one/api/v2/user_rates?user_id={user_id}&status=watching&target_type=Anime",
+    resp_rates = request("GET", f"https://{SHIKI_DOMAIN}/api/v2/user_rates?user_id={user_id}&status=watching&target_type=Anime",
                    headers={
                        'User-Agent': config.SHIKI_USERAGENT,
                        'Authorization': f'Bearer {token}'
@@ -201,7 +202,7 @@ def get_watchlist(user_id, token):
         reverse=True
     )
 
-    resp_animes = request("GET", f"https://shiki.one/api/animes?mylist=watching&limit=50",
+    resp_animes = request("GET", f"https://{SHIKI_DOMAIN}/api/animes?mylist=watching&limit=50",
                    headers={
                        'User-Agent': config.SHIKI_USERAGENT,
                        'Authorization': f'Bearer {token}'
@@ -264,7 +265,7 @@ def last_watched(user_id, token):
 
 def get_rate(user_id, anime_id, token):
     resp = request("GET",
-                   f"https://shiki.one/api/v2/user_rates?user_id={user_id}&target_id={anime_id}&target_type=Anime&limit=1",
+                   f"https://{SHIKI_DOMAIN}/api/v2/user_rates?user_id={user_id}&target_id={anime_id}&target_type=Anime&limit=1",
                    headers={
                        'User-Agent': config.SHIKI_USERAGENT,
                        'Authorization': f'Bearer {token}'
@@ -277,7 +278,7 @@ def get_rate(user_id, anime_id, token):
 
 def create_rate(user_id, anime_id, token):
     resp = request("POST",
-                   f"https://shiki.one/api/v2/user_rates/",
+                   f"https://{SHIKI_DOMAIN}/api/v2/user_rates/",
                    headers={
                        'User-Agent': config.SHIKI_USERAGENT,
                        'Authorization': f'Bearer {token}'
@@ -295,7 +296,7 @@ def create_rate(user_id, anime_id, token):
 
 def update_rate(rate_id, token, **kwargs):
     resp = request("PATCH",
-                   f"https://shiki.one/api/v2/user_rates/{rate_id}",
+                   f"https://{SHIKI_DOMAIN}/api/v2/user_rates/{rate_id}",
                    headers={
                        'User-Agent': config.SHIKI_USERAGENT,
                        'Authorization': f'Bearer {token}'
@@ -310,7 +311,7 @@ def update_rate(rate_id, token, **kwargs):
     return resp.json()
 
 def search(query, token):
-    resp = request("GET", f"https://shiki.one/api/animes?search={query}&limit=50&rating=!rx",
+    resp = request("GET", f"https://{SHIKI_DOMAIN}/api/animes?search={query}&limit=50&rating=!rx",
                    headers={
                        'User-Agent': config.SHIKI_USERAGENT,
                        'Authorization': f'Bearer {token}'
@@ -320,7 +321,7 @@ def search(query, token):
     return resp.json()
 
 def search_trending(token):
-    resp = request("GET", f"https://shiki.one/api/animes?status=ongoing&order=ranked&page={random.randint(1, 4)}&limit=8&rating=!rx",
+    resp = request("GET", f"https://{SHIKI_DOMAIN}/api/animes?status=ongoing&order=ranked&page={random.randint(1, 4)}&limit=8&rating=!rx",
                    headers={
                        'User-Agent': config.SHIKI_USERAGENT,
                        'Authorization': f'Bearer {token}'
