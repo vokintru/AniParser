@@ -153,18 +153,24 @@ async function downloadQualityAsTs(url, quality) {
 
     for (let batchStart = 0; batchStart < tsUrls.length; batchStart += MAX_SEGMENTS_PER_BATCH) {
       const batch = tsUrls.slice(batchStart, batchStart + MAX_SEGMENTS_PER_BATCH);
-      const results = await Promise.allSettled(batch.map(async tsUrl => {
-        const res = await fetch(tsUrl);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const batchPromises = batch.map(async tsUrl => {
+        try {
+          const res = await fetch(tsUrl);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-        const contentType = res.headers.get('content-type');
-        if (!contentType || !contentType.includes('video')) {
-          const text = await res.text();
-          throw new Error(`Не видео: ${text.substring(0, 100)}`);
+          const contentType = res.headers.get('content-type');
+          if (!contentType || !contentType.includes('video')) {
+            const text = await res.text();
+            throw new Error(`Не видео: ${text.substring(0, 100)}`);
+          }
+
+          return await res.arrayBuffer();
+        } finally {
+          processed++;
+          progressFill.style.width = `${(processed / count) * 100}%`;
         }
-
-        return res.arrayBuffer();
-      }));
+      });
+      const results = await Promise.allSettled(batchPromises);
 
       results.forEach((result, index) => {
         if (result.status === 'fulfilled') {
@@ -175,9 +181,6 @@ async function downloadQualityAsTs(url, quality) {
             error: result.reason?.message || String(result.reason)
           });
         }
-
-        processed++;
-        progressFill.style.width = `${(processed / count) * 100}%`;
       });
     }
 
