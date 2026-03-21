@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, redirect
 from flask_login import current_user, login_user
 from collections import defaultdict
 from anime_parsers_ru.errors import NoResults
@@ -193,10 +193,7 @@ def user_get_rate_v1(release_id):
 
 @api_v1_bp.route("/title/<int:title_id>/translations", methods=["GET"])
 def title_translations_v1(title_id):
-    res = api.kodik.get_info(title_id)
-    if res is None:
-        return "None", 204
-    return res, 200
+    return redirect("/api/v2/title/" + str(title_id) + "/translations", code=301)
 
 @api_v1_bp.route("/title/<int:title_id>/info", methods=["GET"])
 @auth_required
@@ -255,46 +252,4 @@ def title_related_v1(title_id):
 @api_v1_bp.route("/title/<int:title_id>/watch", methods=["GET"])
 @auth_required
 def title_watch_v1(title_id):
-    translation = request.args.get('transl')
-    episode = request.args.get('ep')
-    if translation is None or episode is None:
-        return "translation and/or episode is none", 400
-    out = {}
-
-    # kodik
-    try:
-        res = api.kodik.watch_link(title_id, episode, translation)
-        out['kodik'] = {
-            "720p": res + "720.mp4:hls:manifest.m3u8",
-            "480p": res + "480.mp4:hls:manifest.m3u8",
-            "360p": res + "360.mp4:hls:manifest.m3u8",
-        }
-    except NoResults:
-        pass
-
-    # anilibria
-    if translation == "610" or translation == "3861":
-        original_name = api.shikimori.get_title_info(title_id, current_user.shiki_access_token)['original_name']
-        if original_name == {'error': 'reauth'}:
-            return {"error": "Token expired"}, 401
-        if original_name == {'error': '404'}:
-            return {"error": "Not Found"}, 404
-        anilibria_id = api.anilibria.get_anime_id(original_name)
-        if anilibria_id:
-            all_episodes = api.anilibria.get_episodes(anilibria_id)
-            out['anilibria'] = all_episodes[int(episode)]
-    # dreamcast
-    if translation == "1978":
-        original_name = api.shikimori.get_title_info(title_id, current_user.shiki_access_token)['original_name']
-        if original_name == {'error': 'reauth'}:
-            return {"error": "Token expired"}, 401
-        if original_name == {'error': '404'}:
-            return {"error": "Not Found"}, 404
-        dreamcast_url = api.dreamcast.get_title_url(original_name)
-        if dreamcast_url:
-            all_episodes = api.dreamcast.get_episodes(dreamcast_url)
-            if all_episodes is not None and len(all_episodes) >= int(episode):
-                out['dreamcast'] = {
-                    '1080p': f"!onlyapp {all_episodes[int(episode)-1]}"
-                }
-    return out, 200
+    return redirect("/api/v2/title/" + str(title_id) + "/watch", code=301)

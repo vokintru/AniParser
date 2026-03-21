@@ -7,7 +7,7 @@ import lxml
 
 def get_translations(title_id, get_type=False):
     try:
-        response = requests.get(f'https://kodikapi.com/search?token={config.KODIK_TOKEN}&shikimori_id={title_id}')
+        response = requests.get(f'https://kodik-api.com/search?token={config.KODIK_TOKEN}&shikimori_id={title_id}')
         res = []
         for tr in response.json()['results']:
             res.append({
@@ -25,7 +25,7 @@ def get_translations(title_id, get_type=False):
 
 def get_eps(title_id):
     try:
-        response = requests.get(f'https://kodikapi.com/search?token={config.KODIK_TOKEN}&shikimori_id={title_id}').json()
+        response = requests.get(f'https://kodik-api.com/search?token={config.KODIK_TOKEN}&shikimori_id={title_id}').json()
         max_episodes = max(item['episodes_count'] for item in response['results'])
     except Exception as e:
         return None
@@ -62,7 +62,7 @@ def _convert( string: str):
 def watch_links(title_id:int, ep_num:int, translation_id:int):
     res, atype = get_translations(title_id, get_type=True)
     tr = next((i for i in res if i.get('translation_id') == translation_id), None)
-    data = requests.get("https:" + tr['url'] + f"?min_age=16&first_url=false&season=1&episode={0 if atype == 'anime' else ep_num}").text
+    data = requests.get(tr['url'] + f"?min_age=16&first_url=false&season=1&episode={0 if atype == 'anime' else ep_num}").text
     urlParams = data[data.find("urlParams") + 13:]
     urlParams = json.loads(urlParams[: urlParams.find(";") - 1])
     soup = Soup(data, "lxml")
@@ -76,7 +76,7 @@ def watch_links(title_id:int, ep_num:int, translation_id:int):
     video_id = hash_container[hash_container.find(".id = '") + 7:]
     video_id = video_id[: video_id.find("'")]
 
-    data = requests.get("https://kodik.info" + script_url).text
+    data = requests.get("https://kodikplayer.com" + script_url).text
     url = data[data.find("$.ajax") + 30: data.find("cache:!1") - 3]
     post_link = b64decode(url.encode()).decode()
 
@@ -96,7 +96,7 @@ def watch_links(title_id:int, ep_num:int, translation_id:int):
         'cdn_is_working': 'true',
     }
 
-    data = requests.post(f"https://kodik.info{post_link}", data=params, headers=headers).json()
+    data = requests.post(f"https://kodikplayer.com{post_link}", data=params, headers=headers).json()
     res = {}
     for quality, items in data['links'].items():
         url = items[0]['src']
@@ -108,4 +108,4 @@ def watch_links(title_id:int, ep_num:int, translation_id:int):
 
 
 if __name__ == '__main__':
-    print(watch_links(10110, 3, 608))
+    print(watch_links(48753, 4, 1895))
