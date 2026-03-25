@@ -62,7 +62,7 @@ def _convert( string: str):
 def watch_links(title_id:int, ep_num:int, translation_id:int):
     res, atype = get_translations(title_id, get_type=True)
     tr = next((i for i in res if i.get('translation_id') == translation_id), None)
-    data = requests.get(tr['url'] + f"?min_age=16&first_url=false&season=1&episode={0 if atype == 'anime' else ep_num}").text
+    data = requests.get("https:" + tr['url'] + f"?min_age=16&first_url=false&season=1&episode={0 if atype == 'anime' else ep_num}").text
     urlParams = data[data.find("urlParams") + 13:]
     urlParams = json.loads(urlParams[: urlParams.find(";") - 1])
     soup = Soup(data, "lxml")
